@@ -1,0 +1,509 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petani Pro - Layanan Jasa Pertanian</title>
+    
+    <!-- Memuat Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Memuat Font Awesome untuk ikon -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Memuat Google Font 'Inter' -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Konfigurasi Tema Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        green: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom CSS untuk animasi dan efek tambahan -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .service-card { transition: all 0.3s ease; }
+        .service-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .input-hidden { display: none; }
+        .input-visible { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #validationModal { backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <header class="bg-green-700 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-green-700 p-2 rounded-lg shadow-sm">
+                    <i class="fas fa-tractor text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold leading-tight">Petani Pro</h1>
+                    <p class="text-green-200 text-xs font-medium tracking-wide">Mitra Terbaik Petani Indonesia</p>
+                </div>
+            </div>
+            <div class="hidden sm:block">
+                <a href="#kalkulator" class="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-full text-sm font-semibold transition shadow-sm">Pesan Layanan</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full" id="kalkulator">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Kalkulator Jasa Pertanian</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">Pilih layanan yang Anda butuhkan, masukkan detail pengerjaan, dan dapatkan estimasi harga secara langsung sebelum memesan.</p>
+        </div>
+
+        <form id="orderForm" class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Kolom Kiri: Form Input Pelanggan dan Pilihan Layanan -->
+            <div class="w-full lg:w-2/3 space-y-6">
+                
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-5 flex items-center border-b pb-3">
+                        <i class="fas fa-user-circle text-green-600 mr-2 text-xl"></i> Informasi Pelanggan
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
+                            <input type="text" id="custName" required placeholder="Contoh: Budi Santoso" 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nomor WhatsApp <span class="text-red-500">*</span></label>
+                            <input type="tel" id="custWA" required placeholder="Contoh: 08123456789" 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Lokasi Sawah <span class="text-red-500">*</span></label>
+                            <textarea id="custLocation" required rows="2" placeholder="Detail lokasi sawah (Desa, Kecamatan, atau patokan jalan terdekat)" 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50 focus:bg-white"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-5 border-b pb-3">
+                        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-list-check text-green-600 mr-2 text-xl"></i> Pilihan Layanan
+                        </h3>
+                        <span class="text-xs font-bold bg-green-100 text-green-800 px-3 py-1.5 rounded-full shadow-sm">1 Are = 100 m²</span>
+                    </div>
+
+                    <div class="space-y-4" id="servicesList">
+                        <!-- Item layanan akan di-generate secara dinamis oleh JavaScript -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Kolom Kanan: Ringkasan Pesanan (Sticky) -->
+            <div class="w-full lg:w-1/3">
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-green-100 sticky top-24">
+                    <h3 class="text-xl font-bold text-gray-800 mb-5 border-b border-gray-100 pb-4 flex items-center justify-between">
+                        Ringkasan Pesanan
+                        <i class="fas fa-receipt text-gray-400"></i>
+                    </h3>
+                    
+                    <div id="emptyCart" class="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        <i class="fas fa-basket-shopping text-5xl mb-4 opacity-30"></i>
+                        <p class="text-sm font-medium">Belum ada layanan yang dipilih.</p>
+                        <p class="text-xs mt-1">Silakan centang layanan di sebelah kiri.</p>
+                    </div>
+
+                    <div id="orderItems" class="space-y-3 mb-6 hidden max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                        <!-- Daftar pesanan akan dimasukkan lewat JS -->
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-5 mt-4">
+                        <div class="flex justify-between items-end mb-6">
+                            <span class="font-bold text-gray-700">Total Biaya</span>
+                            <div class="text-right">
+                                <span class="text-xs text-gray-500 block mb-1">Estimasi Harga</span>
+                                <span class="font-black text-3xl text-green-700 tracking-tight" id="totalPrice">Rp 0</span>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" id="btnSubmit" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-green-600/30 transition-all flex justify-center items-center gap-2 group">
+                            <i class="fab fa-whatsapp text-2xl group-hover:scale-110 transition-transform"></i> 
+                            Kirim Pesanan ke Admin
+                        </button>
+                        <p class="text-xs text-center text-gray-500 mt-4">
+                            <i class="fas fa-lock text-gray-400 mr-1"></i> Data Anda aman. Anda akan diarahkan ke WhatsApp.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 py-6 text-center text-sm mt-auto">
+        <p>&copy; 2026 Petani Pro. Solusi Modern Pertanian Indonesia.</p>
+    </footer>
+
+    <!-- Modal Validasi Peringatan -->
+    <div id="validationModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden bg-gray-900 bg-opacity-60 transition-opacity">
+        <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full mx-4 shadow-2xl transform scale-100 transition-all">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-5">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Data Belum Lengkap</h3>
+                <p class="text-sm text-gray-600 mb-6 leading-relaxed" id="validationMessage">Mohon lengkapi semua isian yang ditandai bintang (*) dan pilih minimal satu layanan.</p>
+                <button type="button" onclick="closeModal()" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-3 bg-green-600 text-base font-bold text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                    Saya Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Harga (Estimasi) - Silakan sesuaikan dengan harga aktual di lapangan
+        const prices = {
+            pembibitan: 15000,       // per are
+            bajakSawah_besar: 25000, // per are
+            bajakSawah_kecil: 20000, // per are
+            pematang: 10000,         // per are
+            penanaman: 25000,        // per are
+            pemupukan: 12000,        // per are
+            penyemprotan: 15000,     // per are
+            panen: 40000,            // per are
+            angkut_100: 5000,        // per karung
+            angkut_200: 8000,        // per karung
+            angkut_300: 12000,       // per karung
+            jagaBurung: 5000         // per are per jam
+        };
+
+        // NOMOR WHATSAPP ADMIN PENGELOLA (Gunakan format 628...)
+        const adminWhatsApp = "6281234567890"; 
+
+        // Konfigurasi Layanan untuk Generate UI secara dinamis
+        const servicesConfig = [
+            { id: 'pembibitan', title: 'Pembibitan', icon: 'fa-seedling', desc: 'Jasa semai padi siap tanam', type: 'are', basePrice: prices.pembibitan },
+            { id: 'bajakSawah', title: 'Bajak Sawah', icon: 'fa-tractor', desc: 'Pengolahan tanah menggunakan traktor', type: 'are_option', 
+              options: [
+                  { val: 'besar', label: 'Traktor Besar (Rp ' + formatRupiah(prices.bajakSawah_besar) + '/Are)', price: prices.bajakSawah_besar },
+                  { val: 'kecil', label: 'Traktor Kecil (Rp ' + formatRupiah(prices.bajakSawah_kecil) + '/Are)', price: prices.bajakSawah_kecil }
+              ]
+            },
+            { id: 'pematang', title: 'Perbaikan Pematang Sawah', icon: 'fa-layer-group', desc: 'Perbaikan jalur pembatas petak sawah', type: 'are', basePrice: prices.pematang },
+            { id: 'penanaman', title: 'Penanaman Bibit Padi', icon: 'fa-leaf', desc: 'Jasa tanam bibit padi', type: 'are', basePrice: prices.penanaman },
+            { id: 'pemupukan', title: 'Pemupukan', icon: 'fa-flask', desc: 'Aplikasi pupuk sesuai dosis yang tepat', type: 'are', basePrice: prices.pemupukan },
+            { id: 'penyemprotan', title: 'Penyemprotan Sawah', icon: 'fa-spray-can', desc: 'Penyemprotan hama atau gulma', type: 'are', basePrice: prices.penyemprotan },
+            { id: 'panen', title: 'Panen (Harvester Combine)', icon: 'fa-wheat-awn', desc: 'Panen modern menggunakan mesin', type: 'are', basePrice: prices.panen },
+            { id: 'angkut', title: 'Jasa Angkut Padi', icon: 'fa-truck-pickup', desc: 'Pengangkutan gabah dalam karung dari sawah', type: 'karung_option',
+              options: [
+                  { val: '100', label: 'Jarak ≤ 100 meter (Rp ' + formatRupiah(prices.angkut_100) + '/karung)', price: prices.angkut_100 },
+                  { val: '200', label: 'Jarak ≤ 200 meter (Rp ' + formatRupiah(prices.angkut_200) + '/karung)', price: prices.angkut_200 },
+                  { val: '300', label: 'Jarak ≤ 300 meter (Rp ' + formatRupiah(prices.angkut_300) + '/karung)', price: prices.angkut_300 }
+              ]
+            },
+            { id: 'jagaBurung', title: 'Jasa Jaga Burung', icon: 'fa-crow', desc: 'Pengusiran hama burung saat padi mulai menguning', type: 'are_jam', basePrice: prices.jagaBurung }
+        ];
+
+        // Format Angka ke Rupiah
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(number);
+        }
+
+        // State Aplikasi untuk menyimpan keranjang pesanan
+        let orderState = {};
+
+        function initServicesUI() {
+            const container = document.getElementById('servicesList');
+            container.innerHTML = ''; // Bersihkan kontainer
+            
+            servicesConfig.forEach(srv => {
+                let inputHTML = '';
+                let priceNote = '';
+                
+                // Logika form untuk satuan per Are murni
+                if (srv.type === 'are') {
+                    inputHTML = `
+                        <div class="mt-3 flex items-center gap-3">
+                            <input type="number" min="1" id="input_${srv.id}" placeholder="Jumlah Are" class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition bg-white" onchange="updateOrder('${srv.id}', '${srv.type}')" onkeyup="updateOrder('${srv.id}', '${srv.type}')">
+                            <span class="text-sm font-medium text-gray-600">Are</span>
+                        </div>
+                    `;
+                    priceNote = `<span class="text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-md border border-green-200">Rp ${formatRupiah(srv.basePrice)} / Are</span>`;
+                
+                // Logika form untuk opsi pilihan (Traktor / Angkut)
+                } else if (srv.type === 'are_option' || srv.type === 'karung_option') {
+                    const unitLabel = srv.type === 'are_option' ? 'Are' : 'Karung';
+                    const optionsHTML = srv.options.map(opt => `<option value="${opt.val}">${opt.label}</option>`).join('');
+                    
+                    inputHTML = `
+                        <div class="mt-3 flex flex-col sm:flex-row gap-3">
+                            <select id="select_${srv.id}" class="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition bg-white" onchange="updateOrder('${srv.id}', '${srv.type}')">
+                                ${optionsHTML}
+                            </select>
+                            <div class="flex items-center gap-3">
+                                <input type="number" min="1" id="input_${srv.id}" placeholder="Jml ${unitLabel}" class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition bg-white" onchange="updateOrder('${srv.id}', '${srv.type}')" onkeyup="updateOrder('${srv.id}', '${srv.type}')">
+                                <span class="text-sm font-medium text-gray-600">${unitLabel}</span>
+                            </div>
+                        </div>
+                    `;
+                
+                // Logika form khusus untuk Jaga Burung (Jam & Are)
+                } else if (srv.type === 'are_jam') {
+                    inputHTML = `
+                        <div class="mt-3 flex flex-col sm:flex-row gap-4 sm:gap-3 bg-white p-3 border border-gray-200 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-gray-500 w-16 sm:hidden">Luas:</label>
+                                <input type="number" min="1" id="input_${srv.id}_are" placeholder="Jml Are" class="w-24 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition" onchange="updateOrder('${srv.id}', '${srv.type}')" onkeyup="updateOrder('${srv.id}', '${srv.type}')">
+                                <span class="text-sm font-medium text-gray-600">Are</span>
+                            </div>
+                            <div class="hidden sm:flex items-center text-gray-400">
+                                <i class="fas fa-times text-xs"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-gray-500 w-16 sm:hidden">Waktu:</label>
+                                <input type="number" min="1" id="input_${srv.id}_jam" placeholder="Jml Jam" class="w-24 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition" onchange="updateOrder('${srv.id}', '${srv.type}')" onkeyup="updateOrder('${srv.id}', '${srv.type}')">
+                                <span class="text-sm font-medium text-gray-600">Jam</span>
+                            </div>
+                        </div>
+                    `;
+                    priceNote = `<span class="text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-md border border-green-200">Rp ${formatRupiah(srv.basePrice)} / Are / Jam</span>`;
+                }
+
+                // Render Kartu Layanan
+                const html = `
+                    <div class="service-card border border-gray-200 rounded-xl p-4 bg-gray-50 hover:border-green-300">
+                        <label class="flex items-start cursor-pointer group">
+                            <div class="flex-shrink-0 mt-1">
+                                <input type="checkbox" id="check_${srv.id}" class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer shadow-sm transition" onchange="toggleService('${srv.id}')">
+                            </div>
+                            <div class="ml-3 flex-grow">
+                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-1">
+                                    <span class="text-base font-bold text-gray-800 group-hover:text-green-700 transition">
+                                        <i class="fas ${srv.icon} w-6 text-center text-green-500 mr-1 opacity-80 group-hover:opacity-100"></i> ${srv.title}
+                                    </span>
+                                    <div>${priceNote}</div>
+                                </div>
+                                <p class="text-sm text-gray-500">${srv.desc}</p>
+                            </div>
+                        </label>
+                        <div id="wrapper_${srv.id}" class="input-hidden ml-8 border-t border-gray-200 mt-3 pt-3">
+                            ${inputHTML}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // Tampilkan/Sembunyikan input saat checkbox dicentang
+        function toggleService(id) {
+            const checkbox = document.getElementById(`check_${id}`);
+            const wrapper = document.getElementById(`wrapper_${id}`);
+            const config = servicesConfig.find(s => s.id === id);
+            
+            if (checkbox.checked) {
+                wrapper.classList.remove('input-hidden');
+                wrapper.classList.add('input-visible');
+                // Fokus otomatis ke input agar pengguna langsung bisa mengetik
+                setTimeout(() => {
+                    if (config.type === 'are_jam') {
+                        document.getElementById(`input_${id}_are`).focus();
+                    } else {
+                        document.getElementById(`input_${id}`).focus();
+                    }
+                }, 100);
+            } else {
+                // Sembunyikan dan hapus nilai saat uncheck
+                wrapper.classList.remove('input-visible');
+                wrapper.classList.add('input-hidden');
+                
+                if (config.type === 'are_jam') {
+                    document.getElementById(`input_${id}_are`).value = '';
+                    document.getElementById(`input_${id}_jam`).value = '';
+                } else {
+                    document.getElementById(`input_${id}`).value = ''; 
+                }
+                delete orderState[id]; 
+            }
+            
+            updateOrder(id, config.type);
+        }
+
+        // Kalkulasi harga per layanan berdasarkan input pengguna
+        function updateOrder(id, type) {
+            const checkbox = document.getElementById(`check_${id}`);
+            
+            if (!checkbox.checked) {
+                delete orderState[id];
+                renderSummary();
+                return;
+            }
+
+            const config = servicesConfig.find(s => s.id === id);
+            
+            if (type === 'are_jam') {
+                const areVal = parseFloat(document.getElementById(`input_${id}_are`).value);
+                const jamVal = parseFloat(document.getElementById(`input_${id}_jam`).value);
+                
+                if (isNaN(areVal) || areVal <= 0 || isNaN(jamVal) || jamVal <= 0) {
+                     delete orderState[id]; // Hapus jika input tidak valid
+                } else {
+                    orderState[id] = {
+                        title: config.title,
+                        detail: `${areVal} Are × ${jamVal} Jam`,
+                        price: areVal * jamVal * config.basePrice
+                    };
+                }
+            } else {
+                const inputVal = parseFloat(document.getElementById(`input_${id}`).value);
+                
+                if (isNaN(inputVal) || inputVal <= 0) {
+                     delete orderState[id]; 
+                } else {
+                    let itemPrice = 0;
+                    let detailText = '';
+                    
+                    if (type === 'are') {
+                        itemPrice = inputVal * config.basePrice;
+                        detailText = `${inputVal} Are`;
+                    } else if (type === 'are_option' || type === 'karung_option') {
+                        const selectEl = document.getElementById(`select_${id}`);
+                        const selectedVal = selectEl.value;
+                        const optionConfig = config.options.find(o => o.val === selectedVal);
+                        
+                        itemPrice = inputVal * optionConfig.price;
+                        
+                        const unit = type === 'are_option' ? 'Are' : 'Karung';
+                        const optLabel = selectEl.options[selectEl.selectedIndex].text.split('(')[0].trim(); 
+                        
+                        detailText = `${optLabel} - ${inputVal} ${unit}`;
+                    }
+
+                    orderState[id] = {
+                        title: config.title,
+                        detail: detailText,
+                        price: itemPrice
+                    };
+                }
+            }
+            
+            renderSummary();
+        }
+
+        // Render ringkasan keranjang pesanan
+        function renderSummary() {
+            const emptyCart = document.getElementById('emptyCart');
+            const orderItems = document.getElementById('orderItems');
+            const totalPriceEl = document.getElementById('totalPrice');
+            
+            const keys = Object.keys(orderState);
+            
+            if (keys.length === 0) {
+                emptyCart.classList.remove('hidden');
+                orderItems.classList.add('hidden');
+                totalPriceEl.innerText = 'Rp 0';
+                return;
+            }
+
+            emptyCart.classList.add('hidden');
+            orderItems.classList.remove('hidden');
+            
+            let html = '';
+            let total = 0;
+
+            keys.forEach(key => {
+                const item = orderState[key];
+                total += item.price;
+                html += `
+                    <div class="flex justify-between items-start bg-gray-50 p-3.5 rounded-xl border border-gray-200 shadow-sm mb-2">
+                        <div>
+                            <p class="font-bold text-sm text-gray-800">${item.title}</p>
+                            <p class="text-xs text-gray-500 mt-0.5"><i class="fas fa-caret-right text-green-500 mr-1"></i>${item.detail}</p>
+                        </div>
+                        <p class="font-bold text-sm text-green-700 whitespace-nowrap ml-3 bg-green-100 px-2 py-1 rounded">Rp ${formatRupiah(item.price)}</p>
+                    </div>
+                `;
+            });
+
+            orderItems.innerHTML = html;
+            totalPriceEl.innerText = `Rp ${formatRupiah(total)}`;
+        }
+
+        // Fungsi kontrol Modal
+        function showModal(message) {
+            document.getElementById('validationMessage').innerText = message;
+            document.getElementById('validationModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('validationModal').classList.add('hidden');
+        }
+
+        // Handle Form Submit -> Ke WhatsApp
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Cegah reload halaman
+
+            const name = document.getElementById('custName').value.trim();
+            const wa = document.getElementById('custWA').value.trim();
+            const location = document.getElementById('custLocation').value.trim();
+
+            // Validasi keranjang tidak boleh kosong
+            if (Object.keys(orderState).length === 0) {
+                showModal("Silakan pilih minimal satu layanan dan pastikan jumlah (Are/Karung/Jam) yang dimasukkan sudah benar.");
+                return;
+            }
+
+            // Konstruksi teks pesan WhatsApp
+            let text = `Halo *Admin Petani Pro*, saya ingin memesan layanan jasa pertanian.\n\n`;
+            text += `👤 *Data Pelanggan:*\n`;
+            text += `▪️ Nama: ${name}\n`;
+            text += `▪️ No. WA: ${wa}\n`;
+            text += `▪️ Lokasi: ${location}\n\n`;
+            
+            text += `📋 *Detail Pesanan:*\n`;
+            
+            let total = 0;
+            for (const key in orderState) {
+                const item = orderState[key];
+                text += `✅ *${item.title}*\n   └ ${item.detail} : Rp ${formatRupiah(item.price)}\n`;
+                total += item.price;
+            }
+
+            text += `\n💰 *Total Estimasi Tagihan: Rp ${formatRupiah(total)}*\n\n`;
+            text += `Mohon segera direspon untuk konfirmasi ketersediaan dan jadwal. Terima kasih! 🌾🚜`;
+
+            // Buka URL WhatsApp
+            const waUrl = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(text)}`;
+            window.open(waUrl, '_blank');
+        });
+
+        // Inisialisasi UI saat halaman dimuat
+        window.onload = () => {
+            initServicesUI();
+        };
+    </script>
+</body>
+</html>
+
+```
