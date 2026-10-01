@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Hitung Cepat</title>
+    <title>Aplikasi Belajar Matematika Ude F. Mbuhang</title>
     <!-- Memuat Tailwind CSS untuk styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Tone.js untuk efek suara -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
 
@@ -170,11 +170,19 @@
 
     <!-- Layar Utama Permainan -->
     <div id="game-screen" class="game-container animate-pop-in">
-        <!-- Header: Judul dan Progress -->
-        <div class="mb-6 flex justify-between items-center border-b pb-4">
-            <h1 class="text-2xl text-blue-600">Ayo Berhitung!</h1>
-            <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold text-sm">
-                Soal <span id="current-question-num">1</span>/5
+        <!-- Header: Judul Aplikasi (Baru) -->
+        <div class="mb-4">
+            <h1 class="text-xl md:text-2xl text-blue-800 font-bold drop-shadow-sm">Aplikasi Belajar Matematika</h1>
+            <h2 class="text-lg md:text-xl text-blue-600 mb-2">Ude F. Mbuhang</h2>
+        </div>
+
+        <!-- Header: Progress -->
+        <div class="mb-6 flex justify-between items-center border-b pb-4 px-2">
+            <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold text-md shadow-sm">
+                Soal ke-<span id="current-question-num">1</span>
+            </div>
+            <div class="bg-green-100 text-green-800 px-4 py-2 rounded-full font-bold text-md shadow-sm">
+                Skor: <span id="current-score">0</span>
             </div>
         </div>
 
@@ -190,22 +198,17 @@
         <div id="options-container" class="grid grid-cols-2 gap-4">
             <!-- Tombol pilihan akan dihasilkan (generated) oleh JS -->
         </div>
-        
-        <!-- Score display (tersembunyi saat main, muncul di akhir) -->
-        <div id="score-display" class="hidden mt-4 font-bold text-xl text-green-600">
-            Skor Anda: <span id="score-value">0</span>
-        </div>
     </div>
 
     <!-- Layar Akhir (Selesai) -->
     <div id="end-screen" class="game-container hidden">
         <h1 class="text-4xl text-blue-600 mb-4">Hebat! 🎉</h1>
-        <p class="text-xl mb-6">Kamu telah menyelesaikan semua soal.</p>
+        <p class="text-xl mb-6">Permainan selesai! Ini hasil latihanmu.</p>
         
         <div class="bg-gray-100 rounded-xl p-6 mb-6">
-            <h2 class="text-2xl font-bold text-gray-700 mb-2">Nilai Akhir:</h2>
+            <h2 class="text-2xl font-bold text-gray-700 mb-2">Total Skor:</h2>
             <div id="final-score" class="text-6xl text-green-500 font-black" style="font-family: 'Fredoka One', cursive;">
-                100
+                0
             </div>
         </div>
         
@@ -223,21 +226,31 @@
         </div>
     </div>
 
-    <script>
-        // Data Soal Sesuai Permintaan
-        // 3+9, 7+9, 11+13, 8+6, 8+8
-        const questions = [
-            { text: "3 + 9", answer: 12, options: [11, 12, 13, 14] },
-            { text: "7 + 9", answer: 16, options: [15, 16, 17, 18] },
-            { text: "11 + 13", answer: 24, options: [22, 23, 24, 25] },
-            { text: "8 + 6", answer: 14, options: [12, 13, 14, 15] },
-            { text: "8 + 8", answer: 16, options: [14, 15, 16, 17] }
-        ];
+    <!-- Tombol Mulai Awal (Untuk inisialisasi Audio Context) -->
+    <div id="start-overlay" class="fixed inset-0 bg-white/90 z-50 flex flex-col justify-center items-center">
+        <h1 class="text-3xl text-center text-blue-800 font-bold mb-4 px-4" style="font-family: 'Fredoka One', cursive;">Aplikasi Belajar Matematika<br>Ude F. Mbuhang</h1>
+        <p class="mb-8 text-gray-600 font-bold text-lg">Siap untuk berhitung?</p>
+        <button id="btn-mulai" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full text-2xl transition-transform transform hover:scale-105 shadow-lg animate-bounce">
+            Mulai Bermain!
+        </button>
+    </div>
 
+    <script>
         // Variabel Status Permainan
         let currentQuestionIndex = 0;
         let score = 0;
         let canAnswer = true; // Mencegah spam klik saat animasi berjalan
+        
+        // Daftar 5 Soal Tetap Sesuai Permintaan
+        const questions = [
+            { text: "3 + 9", answer: 12, options: [10, 11, 12, 13] },
+            { text: "7 + 9", answer: 16, options: [14, 15, 16, 17] },
+            { text: "11 + 13", answer: 24, options: [22, 23, 24, 25] },
+            { text: "8 + 6", answer: 14, options: [12, 13, 14, 15] },
+            { text: "8 + 8", answer: 16, options: [14, 16, 18, 20] }
+        ];
+
+        let currentQuestion = null; // Menyimpan soal yang sedang aktif
 
         // Elemen DOM
         const gameScreen = document.getElementById('game-screen');
@@ -251,11 +264,60 @@
         const notifText = document.getElementById('notif-text');
         const notifSub = document.getElementById('notif-sub');
         const notifIcon = document.getElementById('notif-icon');
+        const startOverlay = document.getElementById('start-overlay');
+        const btnMulai = document.getElementById('btn-mulai');
+
+        // Setup Synthesizer Tone.js untuk Efek Suara
+        // Synth untuk suara sukses
+        const successSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        successSynth.set({
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 1 }
+        });
+
+        // Synth untuk suara salah
+        const errorSynth = new Tone.Synth().toDestination();
+        errorSynth.set({
+            oscillator: { type: "sawtooth" },
+            envelope: { attack: 0.1, decay: 0.3, sustain: 0.1, release: 0.5 }
+        });
+
+        // Fungsi untuk memainkan suara sukses (arpeggio ceria)
+        function playSuccessSound() {
+            const now = Tone.now();
+            successSynth.triggerAttackRelease("C4", "8n", now);
+            successSynth.triggerAttackRelease("E4", "8n", now + 0.15);
+            successSynth.triggerAttackRelease("G4", "8n", now + 0.3);
+            successSynth.triggerAttackRelease("C5", "4n", now + 0.45);
+        }
+
+        // Fungsi untuk memainkan suara salah (nada rendah turun)
+        function playErrorSound() {
+            const now = Tone.now();
+            errorSynth.triggerAttackRelease("D3", "8n", now);
+            errorSynth.triggerAttackRelease("C#3", "8n", now + 0.2);
+            errorSynth.triggerAttackRelease("C3", "4n", now + 0.4);
+        }
+
+        // Event listener untuk tombol mulai awal
+        btnMulai.addEventListener('click', async () => {
+            // Memulai AudioContext dari Tone.js (browser modern mensyaratkan interaksi user)
+            await Tone.start();
+            console.log("Audio is ready");
+            
+            // Sembunyikan overlay mulai
+            startOverlay.style.display = 'none';
+            
+            // Mulai game
+            startGame();
+        });
+
 
         // Fungsi untuk memulai/mengulang permainan
         function startGame() {
             currentQuestionIndex = 0;
             score = 0;
+            document.getElementById('current-score').textContent = score;
             
             // Sembunyikan layar akhir, tampilkan layar game
             endScreen.classList.add('hidden');
@@ -281,17 +343,19 @@
         // Fungsi untuk memuat pertanyaan saat ini ke layar
         function loadQuestion() {
             canAnswer = true;
-            const currentQ = questions[currentQuestionIndex];
             
-            // Update teks pertanyaan dan nomor urut
-            questionDisplay.textContent = currentQ.text;
-            currentQuestionNumEl.textContent = currentQuestionIndex + 1;
+            // Ambil soal berdasarkan urutan (index)
+            currentQuestion = questions[currentQuestionIndex];
+            
+            // Update teks pertanyaan dan nomor urut (dari total 5 soal)
+            questionDisplay.textContent = currentQuestion.text;
+            currentQuestionNumEl.textContent = `${currentQuestionIndex + 1} dari 5`;
             
             // Bersihkan pilihan sebelumnya
             optionsContainer.innerHTML = '';
             
             // Acak pilihan jawaban agar tidak selalu di posisi yang sama
-            const shuffledOptions = shuffleArray([...currentQ.options]);
+            const shuffledOptions = shuffleArray([...currentQuestion.options]);
 
             // Buat tombol untuk setiap pilihan
             shuffledOptions.forEach(option => {
@@ -312,13 +376,16 @@
             if (!canAnswer) return; // Jika sedang animasi, abaikan klik
             canAnswer = false; // Kunci input sementara
 
-            const currentQ = questions[currentQuestionIndex];
-            const isCorrect = selectedOption === currentQ.answer;
+            const isCorrect = selectedOption === currentQuestion.answer;
 
             if (isCorrect) {
                 // Jawaban Benar
-                score += 20; // 5 soal, masing-masing 20 poin = 100 max
+                score += 20; // Tambah 20 poin tiap jawaban benar (5 x 20 = 100)
+                document.getElementById('current-score').textContent = score;
                 
+                // Mainkan suara sukses
+                playSuccessSound();
+
                 // Animasi pada tombol
                 buttonElement.classList.add('animate-success');
                 
@@ -331,6 +398,9 @@
                 }, 1500); // Tunggu 1.5 detik
             } else {
                 // Jawaban Salah
+                // Mainkan suara salah
+                playErrorSound();
+
                 // Animasi goyang (shake) pada tombol merah
                 buttonElement.classList.add('animate-shake');
                 
@@ -377,15 +447,17 @@
         function nextQuestion() {
             currentQuestionIndex++;
             
-            if (currentQuestionIndex < questions.length) {
+            if (currentQuestionIndex >= 5) {
+                // Jika sudah 5 soal (index 5), langsung akhiri permainan
+                showEndScreen();
+            } else {
+                // Lanjut ke soal berikutnya
                 // Tambahkan sedikit animasi transisi sebelum memuat soal baru
                 gameScreen.classList.remove('animate-pop-in');
                 void gameScreen.offsetWidth;
                 gameScreen.classList.add('animate-pop-in');
                 
                 loadQuestion();
-            } else {
-                showEndScreen();
             }
         }
 
@@ -394,22 +466,23 @@
             gameScreen.classList.add('hidden');
             endScreen.classList.remove('hidden');
             
+            // Mainkan suara sukses panjang untuk menang
+            playSuccessSound();
+            setTimeout(() => { playSuccessSound(); }, 600);
+
             // Animasi pop-in untuk layar akhir
             endScreen.classList.remove('animate-pop-in');
             void endScreen.offsetWidth;
             endScreen.classList.add('animate-pop-in');
             
-            // Karena jika user salah mereka harus mencoba lagi sampai benar untuk lanjut,
-            // maka di akhir mereka pasti mendapat skor 100.
-            // Namun, untuk formalitas kita tetap set nilai skor.
-            finalScoreEl.textContent = "100"; 
+            // Tampilkan total skor 
+            finalScoreEl.textContent = score; 
             
-            // Tambahan efek kecil jika 100
+            // Tambahan efek sukses 
             finalScoreEl.classList.add('animate-success');
         }
 
-        // Mulai permainan saat halaman selesai dimuat
-        window.onload = startGame;
+        // Hapus window.onload = startGame; karena sekarang game dimulai lewat tombol Mulai
     </script>
 </body>
 </html>
