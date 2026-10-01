@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <title>Aplikasi Belajar Matematika Ude F. Mbuhang</title>
+    <title>Aplikasi Belajar Matematika UDE</title>
     <!-- Memuat Tailwind CSS untuk styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Memuat Tone.js untuk efek suara -->
@@ -186,7 +186,7 @@
         <!-- Header: Judul Aplikasi (Baru) -->
         <div class="mb-6 md:mb-8 mt-4 md:mt-0">
             <h1 class="text-2xl md:text-4xl text-blue-800 font-bold drop-shadow-sm mb-2">Aplikasi Belajar Matematika</h1>
-            <h2 class="text-xl md:text-2xl text-blue-600">Ude F. Mbuhang</h2>
+            <h2 class="text-xl md:text-2xl text-blue-600 font-bold uppercase tracking-widest">UDE</h2>
         </div>
 
         <!-- Header: Progress -->
@@ -241,7 +241,7 @@
 
     <!-- Tombol Mulai Awal (Untuk inisialisasi Audio Context) -->
     <div id="start-overlay" class="fixed inset-0 bg-white/95 z-50 flex flex-col justify-center items-center p-6">
-        <h1 class="text-4xl md:text-6xl text-center text-blue-800 font-bold mb-6 px-4 leading-tight" style="font-family: 'Fredoka One', cursive;">Aplikasi Belajar Matematika<br>Ude F. Mbuhang</h1>
+        <h1 class="text-4xl md:text-6xl text-center text-blue-800 font-bold mb-6 px-4 leading-tight" style="font-family: 'Fredoka One', cursive;">Aplikasi Belajar Matematika<br>UDE</h1>
         <p class="mb-12 text-gray-600 font-bold text-2xl md:text-3xl">Siap untuk berhitung?</p>
         <button id="btn-mulai" class="bg-green-500 hover:bg-green-600 text-white font-bold py-6 px-12 rounded-full text-3xl md:text-4xl transition-transform transform hover:scale-105 shadow-xl animate-bounce">
             Mulai Bermain!
@@ -254,14 +254,43 @@
         let score = 0;
         let canAnswer = true; // Mencegah spam klik saat animasi berjalan
         
-        // Daftar 5 Soal Tetap Sesuai Permintaan
-        const questions = [
-            { text: "3 + 9", answer: 12, options: [10, 11, 12, 13] },
-            { text: "7 + 9", answer: 16, options: [14, 15, 16, 17] },
-            { text: "11 + 13", answer: 24, options: [22, 23, 24, 25] },
-            { text: "8 + 6", answer: 14, options: [12, 13, 14, 15] },
-            { text: "8 + 8", answer: 16, options: [14, 16, 18, 20] }
-        ];
+        let questions = []; // Array soal akan diisi dinamis setiap sesi
+        
+        // Fungsi untuk membuat 5 soal baru setiap kali sesi dimulai
+        // Hasil penjumlahan dipastikan maksimal <= 20
+        function generateQuestions() {
+            questions = [];
+            for (let i = 0; i < 5; i++) {
+                // Batas maksimal hasil penjumlahan adalah 20
+                let maxSum = 20; 
+                
+                // Cari angka pertama secara acak (1 sampai 19)
+                let num1 = Math.floor(Math.random() * (maxSum - 1)) + 1;
+                // Cari angka kedua secara acak, dipastikan jumlahnya tidak melebihi 20
+                let num2 = Math.floor(Math.random() * (maxSum - num1)) + 1;
+                let answer = num1 + num2;
+                
+                // Buat pilihan ganda yang mengecoh (selisih sedikit dari jawaban benar)
+                let options = new Set([answer]);
+                while (options.size < 4) {
+                    // Karena angkanya kecil (maks 20), rentang pengecoh cukup dari -3 sampai +3
+                    let offset = Math.floor(Math.random() * 7) - 3; 
+                    let wrongAnswer = answer + offset;
+                    
+                    // Pastikan pilihan jawaban masuk akal (lebih dari 0 dan tidak sama dengan jawaban benar)
+                    if (wrongAnswer > 0 && wrongAnswer !== answer) {
+                        options.add(wrongAnswer);
+                    }
+                }
+                
+                // Masukkan ke daftar soal
+                questions.push({
+                    text: `${num1} + ${num2}`,
+                    answer: answer,
+                    options: Array.from(options)
+                });
+            }
+        }
 
         let currentQuestion = null; // Menyimpan soal yang sedang aktif
 
@@ -331,6 +360,9 @@
             currentQuestionIndex = 0;
             score = 0;
             document.getElementById('current-score').textContent = score;
+            
+            // Generate (Perbarui) 5 soal baru untuk sesi ini
+            generateQuestions();
             
             // Sembunyikan layar akhir, tampilkan layar game
             endScreen.classList.add('hidden');
